@@ -314,6 +314,8 @@ static void tegra_wdt_fiq_cleanup(struct platform_device *pdev,
 					 &tegra_wdt->panic_notifier);
 }
 
+	tegra_wdt->useirq = true;
+}
 #else
 static void tegra_wdt_fiq_setup(struct platform_device *pdev,
 				struct tegra_wdt *tegra_wdt, int fiq)
@@ -325,6 +327,7 @@ static void tegra_wdt_fiq_cleanup(struct platform_device *pdev,
 				  struct tegra_wdt *tegra_wdt)
 {
 }
+=======
 #endif
 
 static int tegra_wdt_probe(struct platform_device *pdev)
