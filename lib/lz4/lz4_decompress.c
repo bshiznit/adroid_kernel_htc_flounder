@@ -1,7 +1,7 @@
 /*
  * LZ4 Decompressor for Linux kernel
  *
- * Copyright (C) 2013 LG Electronics Co., Ltd. (http://www.lge.com/)
+ * Copyright (C) 2013, LG Electronics, Kyungsik Lee <kyungsik.lee@lge.com>
  *
  * Based on LZ4 implementation by Yann Collet.
  *
@@ -46,6 +46,11 @@
 #include <asm/unaligned.h>
 
 #include "lz4defs.h"
+
+static const int dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
+#if LZ4_ARCH64
+static const int dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
+#endif
 
 static int lz4_uncompress(const char *source, char *dest, int osize)
 {
@@ -112,7 +117,7 @@ static int lz4_uncompress(const char *source, char *dest, int osize)
 		/* copy repeated sequence */
 		if (unlikely((op - ref) < STEPSIZE)) {
 #if LZ4_ARCH64
-			size_t dec64 = dec64table[op - ref];
+			int dec64 = dec64table[op - ref];
 #else
 			const int dec64 = 0;
 #endif
@@ -134,6 +139,9 @@ static int lz4_uncompress(const char *source, char *dest, int osize)
 
 			/* Error: request to write beyond destination buffer */
 			if (cpy > oend)
+				goto _output_error;
+			if ((ref + COPYLENGTH) > oend ||
+					(op + COPYLENGTH) > oend)
 				goto _output_error;
 			LZ4_SECURECOPY(ref, op, (oend - COPYLENGTH));
 			while (op < cpy)
@@ -238,7 +246,7 @@ static int lz4_uncompress_unknownoutputsize(const char *source, char *dest,
 		/* copy repeated sequence */
 		if (unlikely((op - ref) < STEPSIZE)) {
 #if LZ4_ARCH64
-			size_t dec64 = dec64table[op - ref];
+			int dec64 = dec64table[op - ref];
 #else
 			const int dec64 = 0;
 #endif
@@ -283,8 +291,8 @@ _output_error:
 	return (int) (-(((char *) ip) - source));
 }
 
-int lz4_decompress(const unsigned char *src, size_t *src_len,
-		unsigned char *dest, size_t actual_dest_len)
+int lz4_decompress(const char *src, size_t *src_len, char *dest,
+		size_t actual_dest_len)
 {
 	int ret = -1;
 	int input_len = 0;
@@ -302,8 +310,8 @@ exit_0:
 EXPORT_SYMBOL_GPL(lz4_decompress);
 #endif
 
-int lz4_decompress_unknownoutputsize(const unsigned char *src, size_t src_len,
-		unsigned char *dest, size_t *dest_len)
+int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
+		char *dest, size_t *dest_len)
 {
 	int ret = -1;
 	int out_len = 0;
