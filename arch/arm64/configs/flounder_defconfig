@@ -61,7 +61,9 @@ CONFIG_NR_CPUS=2
 CONFIG_PREEMPT=y
 CONFIG_HZ_300=y
 CONFIG_ARMV7_COMPAT=y
-# CONFIG_KSM is not set
+CONFIG_KSM=y
+CONFIG_UKSM=y
+# CONFIG_KSM_LEGACY is not set
 CONFIG_ZSMALLOC=y
 CONFIG_SECCOMP=y
 CONFIG_CMDLINE="no_console_suspend=1 tegra_wdt.enable_on_probe=1 tegra_wdt.heartbeat=120 androidboot.hardware=flounder androidboot.selinux=permissive"
